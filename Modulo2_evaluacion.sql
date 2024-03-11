@@ -129,12 +129,50 @@ FROM film
 WHERE rating = "R" AND length > 120;
 
 -- 20. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y muestra el nombre de la categoría junto con el promedio de duración.
+SELECT category.name, AVG(film.length) AS promedio_duracion
+FROM category
+INNER JOIN film_category
+ON category.category_id = film_category.category_id
+INNER JOIN film 
+ON film_category.film_id = film.film_id
+GROUP BY category.name
+HAVING promedio_duracion > 120;
 
-21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
 
-22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes.
+-- 21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
+SELECT first_name, COUNT(film_id) AS cantidad_peliculas
+FROM actor
+INNER JOIN film_actor
+ON actor.actor_id = film_actor.actor_id
+GROUP BY film_actor.actor_id
+HAVING cantidad_peliculas >= 5;
 
-23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores.
+
+-- 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes.
+
+SELECT title
+	FROM film
+	INNER JOIN inventory
+		ON film.film_id = inventory.film_id
+		WHERE  inventory.inventory_id IN (SELECT rental.inventory_id
+											FROM rental
+											WHERE DATEDIFF(DATE(return_date),DATE(rental_date)) > 5)
+GROUP BY film.title;
+
+-- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores.
+SELECT actor.first_name, actor.last_name
+FROM actor
+WHERE first_name NOT IN (SELECT actor.first_name
+FROM actor
+INNER JOIN film_actor
+ON actor.actor_id = film_actor.actor_id
+INNER JOIN film_category
+ON film_actor.film_id = film_category.film_id
+INNER JOIN category
+ON film_category.category_id = category.category_id
+WHERE name = "Horror");
+
+
 
 ## BONUS
 
