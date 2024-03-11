@@ -129,6 +129,16 @@ SELECT title
 	WHERE rating = "R" AND length > 120;
 
 -- 20. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y muestra el nombre de la categoría junto con el promedio de duración.
+
+-- Hay una vista creada que facilita mucho la query (he comprobado que el resultado sea el mismo), de todas maneras mando las soluciones para hacerlo usando la vista y sin ella por si en un futuo la vista se elimina.
+
+-- Utilizando la vista:
+SELECT category, AVG(length) as promedio_duracion
+FROM film_list
+GROUP BY category
+HAVING promedio_duracion > 120;
+
+ -- Usando solo las tablas "oficiales":
 SELECT category.name, AVG(film.length) AS promedio_duracion
 	FROM category
 	INNER JOIN film_category
@@ -137,6 +147,7 @@ SELECT category.name, AVG(film.length) AS promedio_duracion
 		ON film_category.film_id = film.film_id
 	GROUP BY category.name
 		HAVING promedio_duracion > 120;
+
 
 
 -- 21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
@@ -171,9 +182,36 @@ SELECT actor.first_name, actor.last_name
 								INNER JOIN category
 									ON film_category.category_id = category.category_id
 								WHERE name = "Horror");
+                                
+
 
 ## BONUS
 
 -- 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla `film`.
 
-25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.
+SELECT title, length
+	FROM film
+	WHERE length > 180 AND film_id IN (SELECT film_id 
+										FROM film_category
+										INNER JOIN category
+											ON film_category.category_id = category.category_id
+										WHERE category.name = "Comedy");
+
+
+-- 25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.
+
+SELECT CONCAT(a.first_name, " ", a.last_name) AS actor1, CONCAT(b.first_name, " ", b.last_name) AS actor2, COUNT(f2.actor_id) AS peliculas_juntas
+FROM actor AS a
+	INNER JOIN film_actor AS f1 
+		ON a.actor_id = f1.actor_id
+	INNER JOIN film_actor AS f2 
+		ON f1.film_id = f2.film_id 
+	INNER JOIN actor AS b 
+		ON f2.actor_id = b.actor_id
+INNER JOIN (SELECT fi1.actor_id AS actor1_id, fi2.actor_id AS actor2_id
+			FROM film_actor AS fi1
+			JOIN film_actor AS fi2 
+				ON fi1.film_id = fi2.film_id AND fi1.actor_id < fi2.actor_id
+			GROUP BY fi1.actor_id, fi2.actor_id) AS pelis 
+				ON (a.actor_id = pelis.actor1_id AND b.actor_id = pelis.actor2_id) OR (a.actor_id = pelis.actor2_id AND b.actor_id = pelis.actor1_id)
+GROUP BY a.actor_id, a.first_name, a.last_name, b.actor_id, b.first_name, b.last_name;
