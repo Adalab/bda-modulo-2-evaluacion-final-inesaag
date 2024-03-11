@@ -66,7 +66,7 @@ SELECT category.name, COUNT(rental.inventory_id) AS cantidad_alquileres
 		ON film_category.category_id = category.category_id
 	INNER JOIN inventory 
 		ON film_category.film_id = inventory.film_id
-	INNER JOIN rental
+	LEFT JOIN rental
 		ON inventory.inventory_id = rental. inventory_id
 	GROUP BY category.name;
 
@@ -116,11 +116,19 @@ WHERE category.name = "Family";
 
 
 -- 18. Muestra el nombre y apellido de los actores que aparecen en más de 10 películas.
-SELECT first_name
+SELECT first_name, last_name
+FROM actor
+INNER JOIN film_actor
+ON actor.actor_id = film_actor.actor_id
+GROUP BY film_actor.actor_id
+HAVING COUNT(film_id) > 10;
 
-19. Encuentra el título de todas las películas que son "R" y tienen una duración mayor a 2 horas en la tabla `film`.
+-- 19. Encuentra el título de todas las películas que son "R" y tienen una duración mayor a 2 horas en la tabla `film`.
+SELECT title
+FROM film
+WHERE rating = "R" AND length > 120;
 
-20. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y muestra el nombre de la categoría junto con el promedio de duración.
+-- 20. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y muestra el nombre de la categoría junto con el promedio de duración.
 
 21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
 
